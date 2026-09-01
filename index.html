@@ -150,6 +150,14 @@
     cursor: pointer;
   }
   .share-btn:active { transform: scale(0.95); }
+  #share-bar {
+    display: none;
+    margin-top: 4px;
+  }
+  #share-bar.show { display: block; }
+  #share-bar .share-btn {
+    margin-top: 0;
+  }
   @keyframes flip-in { from { transform: rotateX(90deg); } to { transform: rotateX(0); } }
   @keyframes shake {
     0%, 100% { transform: translateX(0); }
@@ -178,6 +186,9 @@
 <main>
   <div id="board"></div>
   <div id="toast"></div>
+  <div id="share-bar">
+    <button class="share-btn" id="share-btn">Share Results</button>
+  </div>
   <div class="keyboard" id="keyboard"></div>
 </main>
 <div id="banner"><div class="box" id="banner-content"></div></div>
@@ -1259,9 +1270,11 @@ function revealRow(guess) {
     revealing = false;
     if (guess === word) {
       status = "won";
+      showShareBar();
       showBanner(WIN_PHRASES[row] || "You won!", "The word was " + word);
     } else if (row + 1 === ROWS) {
       status = "lost";
+      showShareBar();
       showBanner("The word was " + word, "Better luck tomorrow!");
     } else {
       currentRow++;
@@ -1271,6 +1284,29 @@ function revealRow(guess) {
 }
 
 const EMOJI = { green: "🟩", yellow: "🟨", gray: "⬛" };
+
+function showShareBar() {
+  document.getElementById("share-bar").classList.add("show");
+}
+
+function doShare(btn) {
+  copyText(shareText()).then(
+    () => {
+      const prev = btn.textContent;
+      btn.textContent = "Copied!";
+      setTimeout(() => (btn.textContent = prev), 1500);
+    },
+    () => {
+      toast("Copy failed");
+      alert(shareText());
+    }
+  );
+}
+
+document.getElementById("share-btn").addEventListener("click", (e) => {
+  e.stopPropagation();
+  doShare(e.currentTarget);
+});
 
 function shareText() {
   const lines = ["AK Wordle https://anmatthew.github.io/wordle/ " + PUZZLE_NO.toLocaleString() + " " + results.length + "/" + ROWS];
@@ -1319,16 +1355,7 @@ function showBanner(title, sub) {
   btn.textContent = "Share";
   btn.addEventListener("click", (e) => {
     e.stopPropagation();
-    copyText(shareText()).then(
-      () => {
-        btn.textContent = "Copied!";
-        setTimeout(() => (btn.textContent = "Share"), 1500);
-      },
-      () => {
-        toast("Copy failed");
-        alert(shareText());
-      }
-    );
+    doShare(btn);
   });
   b.appendChild(btn);
   const el = document.getElementById("banner");

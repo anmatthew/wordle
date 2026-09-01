@@ -1273,7 +1273,7 @@ function revealRow(guess) {
 const EMOJI = { green: "🟩", yellow: "🟨", gray: "⬛" };
 
 function shareText() {
-  const lines = ["AK Wordle https://anmatthew.github.io/wordle/" + PUZZLE_NO.toLocaleString() + " " + results.length + "/" + ROWS];
+  const lines = ["AK Wordle https://anmatthew.github.io/wordle/ " + PUZZLE_NO.toLocaleString() + " " + results.length + "/" + ROWS];
   for (const r of results) lines.push(r.map((s) => EMOJI[s]).join(""));
   return lines.join("\n");
 }

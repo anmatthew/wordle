@@ -1307,9 +1307,12 @@ document.getElementById("share-btn").addEventListener("click", (e) => {
   e.stopPropagation();
   doShare(e.currentTarget);
 });
-
+  
 function shareText() {
-  const lines = ["AK Wordle " + "http://wordle.matthewan.com/ " + PUZZLE_NO.toLocaleString() + " " + results.length + "/" + ROWS];
+  const lines = [
+    "AK Wordle",
+    "http://wordle.matthewan.com/ " + PUZZLE_NO.toLocaleString() + " " + results.length + "/" + ROWS
+  ];
   for (const r of results) lines.push(r.map((s) => EMOJI[s]).join(""));
   return lines.join("\n");
 }

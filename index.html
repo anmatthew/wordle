@@ -1308,12 +1308,15 @@ document.getElementById("share-btn").addEventListener("click", (e) => {
   doShare(e.currentTarget);
 });
 
-function shareText() {
-  const lines = ["AK Wordle " + "http://wordle.matthewan.com/ " + PUZZLE_NO.toLocaleString() + " " + results.length + "/" + ROWS];
+  function shareText() {
+  const lines = [
+    "AK Wordle " + "http://wordle.matthewan.com/ " +
+      PUZZLE_NO.toLocaleString() + " " + results.length + "/" + ROWS
+  ];
   for (const r of results) lines.push(r.map((s) => EMOJI[s]).join(""));
   return lines.join("\n");
 }
-
+  
 function copyText(text) {
   const legacy = () => {
     const ta = document.createElement("textarea");

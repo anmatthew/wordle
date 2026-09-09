@@ -1244,7 +1244,7 @@ function evaluate(guess) {
   return result;
 }
 
-const WIN_PHRASES = ["Genius! Nobody likes a tryhard.", "Magnificent! Two Slow claps", "Impressive! Look at you, participating.", "Splendid! Participation trophy incoming.", "Great! Took you long enough.", "Phew! Barely a victory.", "Almost! Way to go, jackass."];
+const WIN_PHRASES = ["Genius! Nobody likes a tryhard you cheater!", "Magnificent! Eggcellent! Two Slow claps", "Impressive! Look at you, participating.", "Splendid! Participation trophy incoming.", "Great! Took you long enough.", "Phew! Way to go, jackass!"];
 
 function revealRow(guess) {
   revealing = true;
@@ -1275,7 +1275,7 @@ function revealRow(guess) {
     } else if (row + 1 === ROWS) {
       status = "lost";
       showShareBar();
-      showBanner("The word was " + word, "Better luck tomorrow!");
+      showBanner("The word was " + word, "Incredible! Truly a historic failure!");
     } else {
       currentRow++;
       currentCol = 0;

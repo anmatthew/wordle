@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="en">
-<head>
+<html lang="en"><head>
+<meta http-equiv="content-type" content="text/html; charset=UTF-8">
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <link rel="icon" href="favicon0.png">
+    <link rel="icon" href="https://wordle.matthewan.com/favicon0.png">
 <title>AK Wordle</title>
 <style>
   :root {
@@ -20,6 +20,12 @@
     --tile-gap: min(1.8vw, 5px);
   }
   * { box-sizing: border-box; }
+  /* Prevent mobile browsers (esp. iOS Safari) from interpreting rapid
+     taps on buttons as a double-tap-to-zoom gesture */
+  button {
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+  }
   body {
     margin: 0;
     background: var(--bg);
@@ -182,7 +188,7 @@
 <body>
 <header>
   <h1>AK WORDLE</h1>
-  <div class="date" id="date-label"></div>
+  <div class="date" id="date-label">Daily Oriel Pucer — 102126 — October 21, 2026</div>
 </header>
 <main>
   <div id="board"></div>
@@ -953,6 +959,7 @@ const results = []; // revealed rows, each an array of 'green'|'yellow'|'gray'
 
 // --- build board ---
 const boardEl = document.getElementById("board");
+boardEl.innerHTML = ""; // clear any pre-existing markup so the board is built once
 const tiles = []; // tiles[row][col]
 for (let r = 0; r < ROWS; r++) {
   const row = document.createElement("div");
@@ -975,6 +982,7 @@ const KEY_ROWS = [
 ];
 const keyEls = {};
 const kbEl = document.getElementById("keyboard");
+kbEl.innerHTML = ""; // clear any pre-existing markup so the keyboard is built once
 for (const rowKeys of KEY_ROWS) {
   const rowEl = document.createElement("div");
   rowEl.className = "kb-row";
@@ -1177,6 +1185,13 @@ function copyText(text) {
   });
 }
 
+// --- prevent double-tap zoom on mobile browsers ---
+// Rapid successive taps on the on-screen keyboard can be read as the
+// double-tap-to-zoom gesture (iOS Safari ignores user-scalable=no).
+// `touch-action: manipulation` above disables that per-element; this guard is
+// a fallback for browsers that still act on the synthesized dblclick.
+document.addEventListener("dblclick", (e) => e.preventDefault(), { passive: false });
+
 function showBanner(title, sub) {
   const b = document.getElementById("banner-content");
   b.innerHTML = "";
@@ -1199,5 +1214,6 @@ function showBanner(title, sub) {
   el.onclick = () => el.classList.remove("show");
 }
 </script>
-</body>
-</html>
+
+
+</body></html>

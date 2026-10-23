@@ -188,7 +188,7 @@
 <body>
 <header>
   <h1>AK WORDLE</h1>
-  <div class="date" id="date-label">Daily Oriel Pucer — 101526 — October 21, 2026</div>
+  <div class="date" id="date-label">#59 — October 21, 2026</div>
 </header>
 <main>
   <div id="board"></div>
@@ -945,9 +945,11 @@ function pickWord(date) {
 
 const today = new Date();
 const word = pickWord(today);
-const PUZZLE_NO = daySeed(today);
+// Puzzle numbering: days since the launch date, Aug 23, 2026
+const PUZZLE_BASE = daySeed(new Date(2026, 7, 23));
+const PUZZLE_NO = daySeed(today) - PUZZLE_BASE;
 document.getElementById("date-label").textContent =
-  "Daily Oriel Pucer — 101526 — " + today.toLocaleDateString(undefined, { month: "long", day: "numeric", year: "numeric" });
+  "#" + PUZZLE_NO + " — " + today.toLocaleDateString(undefined, { month: "long", day: "numeric", year: "numeric" });
 
 // --- state ---
 let currentRow = 0;
@@ -956,6 +958,7 @@ let current = "";
 let status = "playing"; // playing | won | lost
 let revealing = false;
 const results = []; // revealed rows, each an array of 'green'|'yellow'|'gray'
+const guesses = []; // revealed rows, each the 5-letter guess word (for persistence)
 
 // --- build board ---
 const boardEl = document.getElementById("board");
@@ -1007,6 +1010,64 @@ function setKeyState(letter, state) {
   }
 }
 
+// --- persistence: resume an in-progress game after the browser is closed ---
+// State is saved to localStorage keyed by puzzle number, so a saved game only
+// resumes on the same day's puzzle; entries from prior days are pruned.
+const SAVE_PREFIX = "akwordle:";
+const SAVE_KEY = SAVE_PREFIX + PUZZLE_NO;
+
+function pruneOldSaves() {
+  try {
+    for (let i = localStorage.length - 1; i >= 0; i--) {
+      const k = localStorage.key(i);
+      if (k && k.startsWith(SAVE_PREFIX) && k !== SAVE_KEY) localStorage.removeItem(k);
+    }
+  } catch (e) { /* storage unavailable */ }
+}
+
+function saveGame() {
+  try {
+    localStorage.setItem(SAVE_KEY, JSON.stringify({
+      currentRow, currentCol, current, status, results, guesses, keyState,
+    }));
+  } catch (e) { /* storage full, private mode, etc. — game plays on unpersisted */ }
+}
+
+function clearSave() {
+  try { localStorage.removeItem(SAVE_KEY); } catch (e) { /* ignore */ }
+}
+
+// Rebuild the board/keyboard from a saved game, with no animations.
+function restoreGame(s) {
+  (s.guesses || []).forEach((guess, row) => {
+    s.results[row].forEach((state, col) => {
+      const t = tiles[row][col];
+      t.textContent = guess[col];
+      t.className = "tile filled flip " + state;
+    });
+  });
+  for (const letter of Object.keys(s.keyState || {})) setKeyState(letter, s.keyState[letter]);
+  currentRow = s.currentRow;
+  currentCol = s.currentCol;
+  current = s.current;
+  status = s.status;
+  results.push(...s.results);
+  guesses.push(...s.guesses);
+  for (let c = 0; c < currentCol; c++) {
+    const t = tiles[currentRow][c];
+    t.textContent = current[c] || "";
+    t.classList.add("filled");
+  }
+  if (status !== "playing") {
+    showShareBar();
+    if (status === "won") {
+      showBanner(WIN_PHRASES[currentRow] || "You won!", "The word was " + word);
+    } else {
+      showBanner("The word was " + word, "Incredible! Truly a historic failure!");
+    }
+  }
+}
+
 // --- toast ---
 let toastTimer = null;
 function toast(msg) {
@@ -1028,6 +1089,7 @@ function onKey(key) {
       t.textContent = "";
       t.classList.remove("filled");
       current = current.slice(0, -1);
+      saveGame();
     }
     return;
   }
@@ -1037,6 +1099,7 @@ function onKey(key) {
     tiles[currentRow][currentCol].classList.add("filled");
     currentCol++;
     current += letter;
+    saveGame();
   }
 }
 
@@ -1068,6 +1131,7 @@ function submitGuess() {
   }
   const guess = current;
   current = "";
+  currentCol = 0; // revealRow animates this row; keep tiles as-is for the flip
   revealRow(guess);
 }
 
@@ -1091,6 +1155,7 @@ function revealRow(guess) {
   revealing = true;
   const result = evaluate(guess);
   results.push(result);
+  guesses.push(guess);
   const row = currentRow;
   for (let c = 0; c < COLS; c++) {
     const state = result[c];
@@ -1121,6 +1186,7 @@ function revealRow(guess) {
       currentRow++;
       currentCol = 0;
     }
+    saveGame();
   }, COLS * 300 + 600);
 }
 
@@ -1212,6 +1278,21 @@ function showBanner(title, sub) {
   const el = document.getElementById("banner");
   el.classList.add("show");
   el.onclick = () => el.classList.remove("show");
+}
+
+// --- boot: resume a saved game for today's puzzle, if any ---
+pruneOldSaves();
+try {
+  const raw = localStorage.getItem(SAVE_KEY);
+  if (raw) {
+    const s = JSON.parse(raw);
+    const ok = s && Array.isArray(s.results) && Array.isArray(s.guesses) &&
+      s.guesses.length === s.results.length && s.currentRow < ROWS;
+    if (ok) restoreGame(s);
+    else clearSave();
+  }
+} catch (e) {
+  clearSave(); // corrupt save — start fresh
 }
 </script>
 
